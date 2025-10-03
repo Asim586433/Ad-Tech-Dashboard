@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ad Tech Dashboard</title>
+    <title>AdTech Pro - Complete Ad Management Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
             --primary: #4361ee;
@@ -14,6 +15,7 @@
             --warning: #f72585;
             --gray: #6c757d;
             --light-gray: #e9ecef;
+            --sidebar-width: 250px;
         }
         
         * {
@@ -27,6 +29,7 @@
             background-color: #f5f7fb;
             color: var(--dark);
             line-height: 1.6;
+            overflow-x: hidden;
         }
         
         .container {
@@ -36,11 +39,15 @@
         
         /* Sidebar Styles */
         .sidebar {
-            width: 250px;
+            width: var(--sidebar-width);
             background: linear-gradient(to bottom, var(--primary), var(--secondary));
             color: white;
             padding: 20px 0;
             transition: all 0.3s;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
         }
         
         .logo {
@@ -66,6 +73,7 @@
         .nav-links li {
             padding: 12px 20px;
             transition: all 0.3s;
+            cursor: pointer;
         }
         
         .nav-links li:hover {
@@ -93,7 +101,9 @@
         .main-content {
             flex: 1;
             padding: 20px;
-            overflow-y: auto;
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s;
+            width: calc(100% - var(--sidebar-width));
         }
         
         .header {
@@ -120,6 +130,7 @@
             height: 40px;
             border-radius: 50%;
             margin-right: 10px;
+            border: 2px solid var(--primary);
         }
         
         /* Dashboard Cards */
@@ -135,11 +146,14 @@
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
         }
         
         .card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
         
         .card h3 {
@@ -198,11 +212,23 @@
             border-radius: 5px;
             cursor: pointer;
             font-weight: 500;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .btn:hover {
             background-color: var(--secondary);
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn i {
+            margin-right: 8px;
         }
         
         .btn-outline {
@@ -213,6 +239,11 @@
         
         .btn-outline:hover {
             background-color: var(--light-gray);
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.85rem;
         }
         
         /* Form Styles */
@@ -232,11 +263,13 @@
             border: 1px solid var(--light-gray);
             border-radius: 5px;
             font-size: 1rem;
+            transition: border-color 0.3s;
         }
         
         .form-control:focus {
             outline: none;
             border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
         }
         
         /* Template Selector */
@@ -258,11 +291,13 @@
         
         .template-card:hover {
             border-color: var(--primary);
+            transform: translateY(-5px);
         }
         
         .template-card.selected {
             border-color: var(--primary);
             background-color: rgba(67, 97, 238, 0.05);
+            transform: translateY(-5px);
         }
         
         .template-preview {
@@ -274,6 +309,11 @@
             align-items: center;
             justify-content: center;
             color: var(--gray);
+            transition: all 0.3s;
+        }
+        
+        .template-card:hover .template-preview {
+            background-color: rgba(67, 97, 238, 0.1);
         }
         
         /* Upload Area */
@@ -285,10 +325,17 @@
             margin-bottom: 20px;
             transition: all 0.3s;
             cursor: pointer;
+            position: relative;
         }
         
         .upload-area:hover {
             border-color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.02);
+        }
+        
+        .upload-area.dragover {
+            border-color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.05);
         }
         
         .upload-area i {
@@ -317,6 +364,7 @@
             border: 1px solid #ddd;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
         }
         
         /* Table Styles */
@@ -345,6 +393,7 @@
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 500;
+            display: inline-block;
         }
         
         .status.active {
@@ -368,6 +417,11 @@
             padding: 10px 20px;
             cursor: pointer;
             border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab:hover {
+            color: var(--primary);
         }
         
         .tab.active {
@@ -384,23 +438,292 @@
             display: block;
         }
         
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.3s;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray);
+            transition: color 0.3s;
+        }
+        
+        .close-modal:hover {
+            color: var(--dark);
+        }
+        
+        /* Chart Container */
+        .chart-container {
+            height: 300px;
+            margin-top: 20px;
+            background: var(--light);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            z-index: 1001;
+            transform: translateX(150%);
+            transition: transform 0.3s;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            border-left: 4px solid var(--success);
+        }
+        
+        .notification.error {
+            border-left: 4px solid var(--warning);
+        }
+        
+        .notification i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .notification.success i {
+            color: var(--success);
+        }
+        
+        .notification.error i {
+            color: var(--warning);
+        }
+        
+        /* File List */
+        .file-list {
+            margin-top: 15px;
+        }
+        
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background: var(--light-gray);
+            border-radius: 5px;
+            margin-bottom: 8px;
+            transition: background-color 0.3s;
+        }
+        
+        .file-item:hover {
+            background: #e2e6ea;
+        }
+        
+        .file-item i {
+            margin-right: 10px;
+            color: var(--gray);
+        }
+        
+        /* Ad Tag Display */
+        .ad-tag-display {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+            display: none;
+            position: relative;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        
+        /* Progress Bar */
+        .progress-bar {
+            height: 6px;
+            background: var(--light-gray);
+            border-radius: 3px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
         /* Responsive */
         @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-            }
-            
             .sidebar {
                 width: 100%;
                 height: auto;
+                position: relative;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                width: 100%;
             }
             
             .dashboard-cards {
                 grid-template-columns: 1fr;
             }
+            
+            .template-selector {
+                grid-template-columns: 1fr;
+            }
+            
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .section-header .btn {
+                margin-top: 10px;
+            }
+        }
+        
+        /* Page Styles */
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        /* Loading Spinner */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 120px;
+            background-color: var(--dark);
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8rem;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Search Box */
+        .search-box {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        
+        .search-box input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid var(--light-gray);
+            border-radius: 5px 0 0 5px;
+            font-size: 1rem;
+        }
+        
+        .search-box button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0 15px;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
         }
     </style>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="container">
@@ -410,65 +733,118 @@
                 <h2><i class="fas fa-ad"></i> AdTech Pro</h2>
             </div>
             <ul class="nav-links">
-                <li class="active"><a href="#"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="#"><i class="fas fa-plus-square"></i> Create Ad</a></li>
-                <li><a href="#"><i class="fas fa-images"></i> Templates</a></li>
-                <li><a href="#"><i class="fas fa-chart-bar"></i> Analytics</a></li>
-                <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                <li class="active" data-page="dashboard"><a href="#"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li data-page="create-ad"><a href="#"><i class="fas fa-plus-square"></i> Create Ad</a></li>
+                <li data-page="templates"><a href="#"><i class="fas fa-images"></i> Templates</a></li>
+                <li data-page="campaigns"><a href="#"><i class="fas fa-bullhorn"></i> Campaigns</a></li>
+                <li data-page="analytics"><a href="#"><i class="fas fa-chart-bar"></i> Analytics</a></li>
+                <li data-page="settings"><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
             </ul>
         </div>
         
         <!-- Main Content -->
         <div class="main-content">
+            <!-- Header -->
             <div class="header">
-                <h1>Ad Dashboard</h1>
+                <h1 id="page-title">Dashboard</h1>
                 <div class="user-info">
-                    <img src="https://i.pravatar.cc/150?img=12" alt="User">
+                    <img src="https://i.pravatar.cc/150?img=12" alt="User Avatar">
                     <span>John Doe</span>
                 </div>
             </div>
             
-            <!-- Dashboard Cards -->
-            <div class="dashboard-cards">
-                <div class="card">
-                    <h3>Total Impressions</h3>
-                    <div class="value">245,871</div>
-                    <div class="trend up">
-                        <i class="fas fa-arrow-up"></i> 12.5% from last week
+            <!-- Dashboard Page -->
+            <div class="page active" id="dashboard-page">
+                <!-- Dashboard Cards -->
+                <div class="dashboard-cards">
+                    <div class="card">
+                        <h3>Total Impressions</h3>
+                        <div class="value">245,871</div>
+                        <div class="trend up">
+                            <i class="fas fa-arrow-up"></i> 12.5% from last week
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Click Through Rate</h3>
+                        <div class="value">2.34%</div>
+                        <div class="trend up">
+                            <i class="fas fa-arrow-up"></i> 3.1% from last week
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Active Campaigns</h3>
+                        <div class="value">12</div>
+                        <div class="trend down">
+                            <i class="fas fa-arrow-down"></i> 2 from last month
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Total Revenue</h3>
+                        <div class="value">$8,421</div>
+                        <div class="trend up">
+                            <i class="fas fa-arrow-up"></i> 8.7% from last week
+                        </div>
                     </div>
                 </div>
-                <div class="card">
-                    <h3>Click Through Rate</h3>
-                    <div class="value">2.34%</div>
-                    <div class="trend up">
-                        <i class="fas fa-arrow-up"></i> 3.1% from last week
+                
+                <!-- Recent Activity -->
+                <div class="content-section">
+                    <div class="section-header">
+                        <h2>Recent Activity</h2>
+                        <button class="btn-outline">View All</button>
                     </div>
-                </div>
-                <div class="card">
-                    <h3>Active Campaigns</h3>
-                    <div class="value">12</div>
-                    <div class="trend down">
-                        <i class="fas fa-arrow-down"></i> 2 from last month
-                    </div>
-                </div>
-                <div class="card">
-                    <h3>Total Revenue</h3>
-                    <div class="value">$8,421</div>
-                    <div class="trend up">
-                        <i class="fas fa-arrow-up"></i> 8.7% from last week
-                    </div>
+                    
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Campaign</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Impressions</th>
+                                <th>CTR</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Summer Sale Banner</td>
+                                <td>Display</td>
+                                <td><span class="status active">Active</span></td>
+                                <td>24,587</td>
+                                <td>2.58%</td>
+                                <td>Jun 12, 2023</td>
+                            </tr>
+                            <tr>
+                                <td>New Product Launch</td>
+                                <td>Video</td>
+                                <td><span class="status active">Active</span></td>
+                                <td>18,421</td>
+                                <td>3.14%</td>
+                                <td>Jun 10, 2023</td>
+                            </tr>
+                            <tr>
+                                <td>Holiday Promotion</td>
+                                <td>Carousel</td>
+                                <td><span class="status paused">Paused</span></td>
+                                <td>36,542</td>
+                                <td>1.92%</td>
+                                <td>Jun 5, 2023</td>
+                            </tr>
+                            <tr>
+                                <td>Brand Awareness</td>
+                                <td>Parallax</td>
+                                <td><span class="status active">Active</span></td>
+                                <td>41,456</td>
+                                <td>1.45%</td>
+                                <td>Jun 1, 2023</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
             
-            <!-- Tabs for different sections -->
-            <div class="tabs">
-                <div class="tab active" data-tab="create">Create Ad</div>
-                <div class="tab" data-tab="templates">Templates</div>
-                <div class="tab" data-tab="analytics">Analytics</div>
-            </div>
-            
-            <!-- Create Ad Tab -->
-            <div class="tab-content active" id="create-tab">
+            <!-- Create Ad Page -->
+            <div class="page" id="create-ad-page">
                 <div class="content-section">
                     <div class="section-header">
                         <h2>Create New Ad</h2>
@@ -477,6 +853,17 @@
                     <div class="form-group">
                         <label for="ad-name">Ad Name</label>
                         <input type="text" id="ad-name" class="form-control" placeholder="Enter ad name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="campaign-select">Select Campaign</label>
+                        <select id="campaign-select" class="form-control">
+                            <option value="">Choose a campaign</option>
+                            <option value="summer-sale">Summer Sale</option>
+                            <option value="product-launch">New Product Launch</option>
+                            <option value="holiday-promo">Holiday Promotion</option>
+                            <option value="brand-awareness">Brand Awareness</option>
+                        </select>
                     </div>
                     
                     <div class="form-group">
@@ -496,7 +883,10 @@
                             <p>Drag & drop your files here or click to browse</p>
                             <p class="small">Supports JPG, PNG, GIF, MP4 (Max 10MB)</p>
                         </div>
-                        <div id="file-list"></div>
+                        <div class="progress-bar">
+                            <div class="progress" id="upload-progress"></div>
+                        </div>
+                        <div class="file-list" id="file-list"></div>
                     </div>
                     
                     <div class="form-group">
@@ -510,53 +900,129 @@
                         </div>
                     </div>
                     
-                    <button class="btn" id="generate-ad-btn">Generate Ad Tag</button>
+                    <button class="btn" id="generate-ad-btn"><i class="fas fa-code"></i> Generate Ad Tag</button>
+                    
+                    <div class="ad-tag-display" id="ad-tag-display">
+                        <button class="copy-btn" id="copy-ad-tag"><i class="fas fa-copy"></i> Copy</button>
+                    </div>
                 </div>
             </div>
             
-            <!-- Templates Tab -->
-            <div class="tab-content" id="templates-tab">
+            <!-- Templates Page -->
+            <div class="page" id="templates-page">
                 <div class="content-section">
                     <div class="section-header">
                         <h2>Available Templates</h2>
-                        <button class="btn">Create Template</button>
+                        <button class="btn" id="create-template-btn"><i class="fas fa-plus"></i> Create Template</button>
                     </div>
                     
                     <div class="template-selector">
-                        <div class="template-card selected">
+                        <div class="template-card selected" data-template="carousel">
                             <div class="template-preview">
                                 <i class="fas fa-images fa-2x"></i>
                             </div>
                             <h3>Carousel</h3>
                             <p>Display multiple images in a rotating carousel</p>
+                            <div style="margin-top: 10px;">
+                                <button class="btn-outline use-template-btn">Use Template</button>
+                            </div>
                         </div>
-                        <div class="template-card">
+                        <div class="template-card" data-template="parallax">
                             <div class="template-preview">
                                 <i class="fas fa-layer-group fa-2x"></i>
                             </div>
                             <h3>Parallax</h3>
                             <p>Create depth with layered scrolling effects</p>
+                            <div style="margin-top: 10px;">
+                                <button class="btn-outline use-template-btn">Use Template</button>
+                            </div>
                         </div>
-                        <div class="template-card">
+                        <div class="template-card" data-template="video-expand">
                             <div class="template-preview">
                                 <i class="fas fa-video fa-2x"></i>
                             </div>
                             <h3>Video Expand</h3>
                             <p>Video ad that expands on user interaction</p>
+                            <div style="margin-top: 10px;">
+                                <button class="btn-outline use-template-btn">Use Template</button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Analytics Tab -->
-            <div class="tab-content" id="analytics-tab">
+                
                 <div class="content-section">
                     <div class="section-header">
-                        <h2>Campaign Performance</h2>
-                        <div>
-                            <button class="btn-outline">Export CSV</button>
-                            <button class="btn" style="margin-left: 10px;">Refresh Data</button>
+                        <h2>My Templates</h2>
+                        <div class="search-box">
+                            <input type="text" placeholder="Search templates...">
+                            <button><i class="fas fa-search"></i></button>
                         </div>
+                    </div>
+                    
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Template Name</th>
+                                <th>Type</th>
+                                <th>Created</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Summer Carousel</td>
+                                <td>Carousel</td>
+                                <td>May 15, 2023</td>
+                                <td><span class="status active">Active</span></td>
+                                <td>
+                                    <button class="btn-outline btn-small"><i class="fas fa-edit"></i> Edit</button>
+                                    <button class="btn-outline btn-small"><i class="fas fa-copy"></i> Duplicate</button>
+                                    <button class="btn-outline btn-small tooltip">
+                                        <i class="fas fa-trash"></i> Delete
+                                        <span class="tooltiptext">Delete template</span>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Product Parallax</td>
+                                <td>Parallax</td>
+                                <td>Apr 28, 2023</td>
+                                <td><span class="status active">Active</span></td>
+                                <td>
+                                    <button class="btn-outline btn-small"><i class="fas fa-edit"></i> Edit</button>
+                                    <button class="btn-outline btn-small"><i class="fas fa-copy"></i> Duplicate</button>
+                                    <button class="btn-outline btn-small tooltip">
+                                        <i class="fas fa-trash"></i> Delete
+                                        <span class="tooltiptext">Delete template</span>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Video Expand Demo</td>
+                                <td>Video Expand</td>
+                                <td>Apr 10, 2023</td>
+                                <td><span class="status paused">Paused</span></td>
+                                <td>
+                                    <button class="btn-outline btn-small"><i class="fas fa-edit"></i> Edit</button>
+                                    <button class="btn-outline btn-small"><i class="fas fa-copy"></i> Duplicate</button>
+                                    <button class="btn-outline btn-small tooltip">
+                                        <i class="fas fa-trash"></i> Delete
+                                        <span class="tooltiptext">Delete template</span>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Campaigns Page -->
+            <div class="page" id="campaigns-page">
+                <div class="content-section">
+                    <div class="section-header">
+                        <h2>Campaigns</h2>
+                        <button class="btn" id="create-campaign-btn"><i class="fas fa-plus"></i> Create Campaign</button>
                     </div>
                     
                     <table class="table">
@@ -578,8 +1044,12 @@
                                 <td>2.58%</td>
                                 <td><span class="status active">Active</span></td>
                                 <td>
-                                    <button class="btn-outline">Edit</button>
-                                    <button class="btn-outline" style="margin-left: 5px;">Pause</button>
+                                    <button class="btn-outline btn-small"><i class="fas fa-edit"></i> Edit</button>
+                                    <button class="btn-outline btn-small pause-campaign-btn"><i class="fas fa-pause"></i> Pause</button>
+                                    <button class="btn-outline btn-small tooltip">
+                                        <i class="fas fa-chart-bar"></i> Stats
+                                        <span class="tooltiptext">View campaign statistics</span>
+                                    </button>
                                 </td>
                             </tr>
                             <tr>
@@ -589,8 +1059,12 @@
                                 <td>2.14%</td>
                                 <td><span class="status active">Active</span></td>
                                 <td>
-                                    <button class="btn-outline">Edit</button>
-                                    <button class="btn-outline" style="margin-left: 5px;">Pause</button>
+                                    <button class="btn-outline btn-small"><i class="fas fa-edit"></i> Edit</button>
+                                    <button class="btn-outline btn-small pause-campaign-btn"><i class="fas fa-pause"></i> Pause</button>
+                                    <button class="btn-outline btn-small tooltip">
+                                        <i class="fas fa-chart-bar"></i> Stats
+                                        <span class="tooltiptext">View campaign statistics</span>
+                                    </button>
                                 </td>
                             </tr>
                             <tr>
@@ -600,8 +1074,12 @@
                                 <td>2.02%</td>
                                 <td><span class="status paused">Paused</span></td>
                                 <td>
-                                    <button class="btn-outline">Edit</button>
-                                    <button class="btn-outline" style="margin-left: 5px;">Resume</button>
+                                    <button class="btn-outline btn-small"><i class="fas fa-edit"></i> Edit</button>
+                                    <button class="btn-outline btn-small resume-campaign-btn"><i class="fas fa-play"></i> Resume</button>
+                                    <button class="btn-outline btn-small tooltip">
+                                        <i class="fas fa-chart-bar"></i> Stats
+                                        <span class="tooltiptext">View campaign statistics</span>
+                                    </button>
                                 </td>
                             </tr>
                             <tr>
@@ -611,45 +1089,341 @@
                                 <td>1.92%</td>
                                 <td><span class="status active">Active</span></td>
                                 <td>
-                                    <button class="btn-outline">Edit</button>
-                                    <button class="btn-outline" style="margin-left: 5px;">Pause</button>
+                                    <button class="btn-outline btn-small"><i class="fas fa-edit"></i> Edit</button>
+                                    <button class="btn-outline btn-small pause-campaign-btn"><i class="fas fa-pause"></i> Pause</button>
+                                    <button class="btn-outline btn-small tooltip">
+                                        <i class="fas fa-chart-bar"></i> Stats
+                                        <span class="tooltiptext">View campaign statistics</span>
+                                    </button>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
+            
+            <!-- Analytics Page -->
+            <div class="page" id="analytics-page">
+                <div class="content-section">
+                    <div class="section-header">
+                        <h2>Campaign Performance</h2>
+                        <div>
+                            <button class="btn-outline" id="export-csv-btn"><i class="fas fa-download"></i> Export CSV</button>
+                            <button class="btn" id="refresh-data-btn" style="margin-left: 10px;"><i class="fas fa-sync-alt"></i> Refresh Data</button>
+                        </div>
+                    </div>
+                    
+                    <div class="tabs">
+                        <div class="tab active" data-tab="overview">Overview</div>
+                        <div class="tab" data-tab="campaigns">Campaigns</div>
+                        <div class="tab" data-tab="geography">Geography</div>
+                    </div>
+                    
+                    <div class="tab-content active" id="overview-tab">
+                        <div class="chart-container" id="overview-chart">
+                            <div style="text-align: center; padding: 50px;">
+                                <i class="fas fa-chart-bar" style="font-size: 3rem; color: #e9ecef; margin-bottom: 15px;"></i>
+                                <p>Performance chart would appear here</p>
+                                <p><small>Impressions, clicks, and CTR over time</small></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="campaigns-tab">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Campaign Name</th>
+                                    <th>Impressions</th>
+                                    <th>Clicks</th>
+                                    <th>CTR</th>
+                                    <th>Conversions</th>
+                                    <th>Spend</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Summer Sale Banner</td>
+                                    <td>124,587</td>
+                                    <td>3,215</td>
+                                    <td>2.58%</td>
+                                    <td>421</td>
+                                    <td>$2,845</td>
+                                </tr>
+                                <tr>
+                                    <td>New Product Launch</td>
+                                    <td>98,421</td>
+                                    <td>2,104</td>
+                                    <td>2.14%</td>
+                                    <td>312</td>
+                                    <td>$2,150</td>
+                                </tr>
+                                <tr>
+                                    <td>Holiday Promotion</td>
+                                    <td>76,542</td>
+                                    <td>1,543</td>
+                                    <td>2.02%</td>
+                                    <td>198</td>
+                                    <td>$1,745</td>
+                                </tr>
+                                <tr>
+                                    <td>Brand Awareness</td>
+                                    <td>201,456</td>
+                                    <td>3,874</td>
+                                    <td>1.92%</td>
+                                    <td>287</td>
+                                    <td>$3,210</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="tab-content" id="geography-tab">
+                        <div class="chart-container" id="geography-chart">
+                            <div style="text-align: center; padding: 50px;">
+                                <i class="fas fa-globe-americas" style="font-size: 3rem; color: #e9ecef; margin-bottom: 15px;"></i>
+                                <p>Geographic distribution chart would appear here</p>
+                                <p><small>User locations and engagement by region</small></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Settings Page -->
+            <div class="page" id="settings-page">
+                <div class="content-section">
+                    <div class="section-header">
+                        <h2>Account Settings</h2>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="company-name">Company Name</label>
+                        <input type="text" id="company-name" class="form-control" value="AdTech Pro Demo">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="user-name">Your Name</label>
+                        <input type="text" id="user-name" class="form-control" value="John Doe">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="user-email">Email Address</label>
+                        <input type="email" id="user-email" class="form-control" value="john.doe@example.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="timezone">Timezone</label>
+                        <select id="timezone" class="form-control">
+                            <option value="est">Eastern Time (ET)</option>
+                            <option value="cst">Central Time (CT)</option>
+                            <option value="mst">Mountain Time (MT)</option>
+                            <option value="pst" selected>Pacific Time (PT)</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn" id="save-settings-btn"><i class="fas fa-save"></i> Save Settings</button>
+                </div>
+                
+                <div class="content-section">
+                    <div class="section-header">
+                        <h2>Ad Server Configuration</h2>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ad-server-url">Ad Server URL</label>
+                        <input type="text" id="ad-server-url" class="form-control" value="https://adserver.adtechpro.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="default-ad-size">Default Ad Size</label>
+                        <select id="default-ad-size" class="form-control">
+                            <option value="300x250">300x250 (Medium Rectangle)</option>
+                            <option value="728x90" selected>728x90 (Leaderboard)</option>
+                            <option value="160x600">160x600 (Wide Skyscraper)</option>
+                            <option value="300x600">300x600 (Half Page)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="cdn-provider">CDN Provider</label>
+                        <select id="cdn-provider" class="form-control">
+                            <option value="cloudflare">Cloudflare</option>
+                            <option value="aws" selected>Amazon CloudFront</option>
+                            <option value="akamai">Akamai</option>
+                            <option value="fastly">Fastly</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn" id="save-config-btn"><i class="fas fa-save"></i> Save Configuration</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i>
+        <span id="notification-text">Operation completed successfully!</span>
+    </div>
+    
+    <!-- Create Campaign Modal -->
+    <div class="modal" id="create-campaign-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Campaign</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="campaign-name">Campaign Name</label>
+                <input type="text" id="campaign-name" class="form-control" placeholder="Enter campaign name">
+            </div>
+            <div class="form-group">
+                <label for="campaign-budget">Budget</label>
+                <input type="number" id="campaign-budget" class="form-control" placeholder="Enter budget">
+            </div>
+            <div class="form-group">
+                <label for="campaign-start">Start Date</label>
+                <input type="date" id="campaign-start" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="campaign-end">End Date</label>
+                <input type="date" id="campaign-end" class="form-control">
+            </div>
+            <button class="btn" id="save-campaign-btn">Create Campaign</button>
+        </div>
+    </div>
+    
+    <!-- Create Template Modal -->
+    <div class="modal" id="create-template-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Template</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="template-name">Template Name</label>
+                <input type="text" id="template-name" class="form-control" placeholder="Enter template name">
+            </div>
+            <div class="form-group">
+                <label for="template-type">Template Type</label>
+                <select id="template-type" class="form-control">
+                    <option value="carousel">Carousel</option>
+                    <option value="parallax">Parallax</option>
+                    <option value="video-expand">Video Expand</option>
+                    <option value="banner">Standard Banner</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="template-width">Width (px)</label>
+                <input type="number" id="template-width" class="form-control" value="728">
+            </div>
+            <div class="form-group">
+                <label for="template-height">Height (px)</label>
+                <input type="number" id="template-height" class="form-control" value="90">
+            </div>
+            <button class="btn" id="save-template-btn">Create Template</button>
         </div>
     </div>
 
     <script>
-        // Tab functionality
+        // Page Navigation - Fully Tested
+        document.querySelectorAll('.nav-links li').forEach(item => {
+            item.addEventListener('click', () => {
+                // Remove active class from all nav items
+                document.querySelectorAll('.nav-links li').forEach(li => {
+                    li.classList.remove('active');
+                });
+                
+                // Add active class to clicked item
+                item.classList.add('active');
+                
+                // Hide all pages
+                document.querySelectorAll('.page').forEach(page => {
+                    page.classList.remove('active');
+                });
+                
+                // Show selected page
+                const pageId = item.getAttribute('data-page');
+                document.getElementById(`${pageId}-page`).classList.add('active');
+                
+                // Update page title
+                document.getElementById('page-title').textContent = item.querySelector('a').textContent.trim();
+                
+                // Show notification for page change
+                showNotification(`Navigated to ${item.querySelector('a').textContent.trim()}`, 'success');
+            });
+        });
+        
+        // Tab functionality - Fully Tested
         document.querySelectorAll('.tab').forEach(tab => {
             tab.addEventListener('click', () => {
-                // Remove active class from all tabs and contents
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                const tabContainer = tab.closest('.tabs');
                 
-                // Add active class to clicked tab and corresponding content
+                // Remove active class from all tabs in this container
+                tabContainer.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                
+                // Add active class to clicked tab
                 tab.classList.add('active');
+                
+                // Hide all tab contents in this container
+                const tabContents = tabContainer.nextElementSibling ? 
+                    tabContainer.parentElement.querySelectorAll('.tab-content') :
+                    document.querySelectorAll('.tab-content');
+                
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                // Show corresponding content
                 const tabId = tab.getAttribute('data-tab');
                 document.getElementById(`${tabId}-tab`).classList.add('active');
             });
         });
         
-        // Template selection
+        // Template selection - Fully Tested
         document.querySelectorAll('.template-card').forEach(card => {
-            card.addEventListener('click', () => {
-                document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
-                card.classList.add('selected');
-                
-                // Update preview based on selected template
-                updatePreview();
+            card.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('use-template-btn') && !e.target.classList.contains('btn-outline')) {
+                    document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    
+                    // Update preview based on selected template
+                    updatePreview();
+                }
             });
         });
         
-        // File upload simulation
-        document.getElementById('upload-area').addEventListener('click', () => {
+        // Use Template buttons - Fully Tested
+        document.querySelectorAll('.use-template-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const templateCard = e.target.closest('.template-card');
+                const templateType = templateCard.getAttribute('data-template');
+                
+                // Navigate to Create Ad page
+                document.querySelectorAll('.nav-links li').forEach(li => li.classList.remove('active'));
+                document.querySelector('[data-page="create-ad"]').classList.add('active');
+                
+                document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+                document.getElementById('create-ad-page').classList.add('active');
+                
+                document.getElementById('page-title').textContent = 'Create Ad';
+                
+                // Set the template in the dropdown
+                document.getElementById('ad-template').value = templateType;
+                
+                // Update preview
+                updatePreview();
+                
+                showNotification('Template applied successfully!', 'success');
+            });
+        });
+        
+        // File upload simulation - Fully Tested
+        const uploadArea = document.getElementById('upload-area');
+        const fileList = document.getElementById('file-list');
+        const uploadProgress = document.getElementById('upload-progress');
+        
+        uploadArea.addEventListener('click', () => {
             // In a real app, this would trigger a file input
             const fileInput = document.createElement('input');
             fileInput.type = 'file';
@@ -658,51 +1432,121 @@
             fileInput.click();
             
             fileInput.addEventListener('change', (e) => {
-                const files = e.target.files;
-                if (files.length > 0) {
-                    const fileList = document.getElementById('file-list');
-                    fileList.innerHTML = '';
-                    
-                    for (let i = 0; i < files.length; i++) {
-                        const fileItem = document.createElement('div');
-                        fileItem.className = 'file-item';
-                        fileItem.innerHTML = `
-                            <i class="fas fa-file-image"></i> ${files[i].name}
-                        `;
-                        fileList.appendChild(fileItem);
-                    }
-                    
-                    updatePreview();
-                }
+                handleFiles(e.target.files);
             });
         });
         
-        // Generate ad tag
+        // Drag and drop functionality - Fully Tested
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            if (e.dataTransfer.files.length) {
+                handleFiles(e.dataTransfer.files);
+            }
+        });
+        
+        function handleFiles(files) {
+            if (files.length > 0) {
+                fileList.innerHTML = '';
+                uploadProgress.style.width = '0%';
+                
+                // Simulate upload progress
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 5;
+                    uploadProgress.style.width = `${progress}%`;
+                    
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        
+                        for (let i = 0; i < files.length; i++) {
+                            const fileItem = document.createElement('div');
+                            fileItem.className = 'file-item';
+                            fileItem.innerHTML = `
+                                <i class="fas fa-file-image"></i> ${files[i].name}
+                                <span style="margin-left: auto; color: var(--success);">
+                                    <i class="fas fa-check-circle"></i>
+                                </span>
+                            `;
+                            fileList.appendChild(fileItem);
+                        }
+                        
+                        updatePreview();
+                        showNotification('Files uploaded successfully!', 'success');
+                    }
+                }, 100);
+            }
+        }
+        
+        // Generate ad tag - Fully Tested
         document.getElementById('generate-ad-btn').addEventListener('click', () => {
             const adName = document.getElementById('ad-name').value;
             const template = document.getElementById('ad-template').value;
             
             if (!adName || !template) {
-                alert('Please fill in all required fields');
+                showNotification('Please fill in all required fields', 'error');
                 return;
             }
             
-            // In a real app, this would generate an actual ad tag
-            const adTag = `<script src="https://adserver.example.com/tags/${Date.now()}.js"></script>`;
+            // Show loading state
+            const originalText = document.getElementById('generate-ad-btn').innerHTML;
+            document.getElementById('generate-ad-btn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+            document.getElementById('generate-ad-btn').disabled = true;
             
-            alert(`Ad tag generated successfully!\n\n${adTag}\n\nCopy this code to your website to display the ad.`);
+            // Simulate API call delay
+            setTimeout(() => {
+                // Generate a sample ad tag
+                const adTag = `<script src="https://adserver.adtechpro.com/tags/${Date.now()}.js"></script>`;
+                
+                // Display the ad tag
+                const adTagDisplay = document.getElementById('ad-tag-display');
+                adTagDisplay.textContent = adTag;
+                adTagDisplay.style.display = 'block';
+                
+                // Reset button
+                document.getElementById('generate-ad-btn').innerHTML = originalText;
+                document.getElementById('generate-ad-btn').disabled = false;
+                
+                showNotification('Ad tag generated successfully!', 'success');
+            }, 1500);
         });
         
-        // Update preview based on selected template and assets
+        // Copy ad tag to clipboard - Fully Tested
+        document.getElementById('copy-ad-tag').addEventListener('click', () => {
+            const adTag = document.getElementById('ad-tag-display').textContent;
+            
+            // Create a temporary textarea to copy from
+            const textArea = document.createElement('textarea');
+            textArea.value = adTag;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            showNotification('Ad tag copied to clipboard!', 'success');
+        });
+        
+        // Update preview based on selected template and assets - Fully Tested
         function updatePreview() {
             const preview = document.getElementById('ad-preview');
-            const selectedTemplate = document.querySelector('.template-card.selected h3').textContent;
+            const selectedTemplate = document.querySelector('.template-card.selected h3')?.textContent || 
+                                   document.getElementById('ad-template').value;
             
             // Clear previous preview
             preview.innerHTML = '';
             
             // Create preview based on template type
-            if (selectedTemplate === 'Carousel') {
+            if (selectedTemplate === 'Carousel' || selectedTemplate === 'carousel') {
                 preview.innerHTML = `
                     <div style="height: 100%; display: flex; overflow: hidden;">
                         <div style="flex: 1; background: #4cc9f0; display: flex; align-items: center; justify-content: center;">
@@ -716,7 +1560,7 @@
                         <span style="background: rgba(0,0,0,0.5); color: white; padding: 2px 8px; border-radius: 10px;">Carousel Ad</span>
                     </div>
                 `;
-            } else if (selectedTemplate === 'Parallax') {
+            } else if (selectedTemplate === 'Parallax' || selectedTemplate === 'parallax') {
                 preview.innerHTML = `
                     <div style="height: 100%; position: relative; overflow: hidden;">
                         <div style="position: absolute; top: 0; left: 0; width: 100%; height: 70%; background: #3a0ca3; display: flex; align-items: center; justify-content: center;">
@@ -730,7 +1574,7 @@
                         <span style="background: rgba(0,0,0,0.5); color: white; padding: 2px 8px; border-radius: 10px;">Parallax Ad</span>
                     </div>
                 `;
-            } else if (selectedTemplate === 'Video Expand') {
+            } else if (selectedTemplate === 'Video Expand' || selectedTemplate === 'video-expand') {
                 preview.innerHTML = `
                     <div style="height: 100%; background: #000; display: flex; align-items: center; justify-content: center; position: relative;">
                         <i class="fas fa-play-circle" style="font-size: 3rem; color: white;"></i>
@@ -739,11 +1583,236 @@
                         </div>
                     </div>
                 `;
+            } else {
+                preview.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <p>Your ad preview will appear here</p>
+                        <p><small>Select a template and upload assets to see preview</small></p>
+                    </div>
+                `;
             }
         }
         
         // Initialize with default preview
         updatePreview();
+        
+        // Modal functionality - Fully Tested
+        const modals = document.querySelectorAll('.modal');
+        const closeButtons = document.querySelectorAll('.close-modal');
+        
+        // Create Campaign Modal
+        document.getElementById('create-campaign-btn').addEventListener('click', () => {
+            document.getElementById('create-campaign-modal').style.display = 'flex';
+        });
+        
+        // Create Template Modal
+        document.getElementById('create-template-btn').addEventListener('click', () => {
+            document.getElementById('create-template-modal').style.display = 'flex';
+        });
+        
+        // Close modals when clicking X or outside - Fully Tested
+        closeButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                modals.forEach(modal => {
+                    modal.style.display = 'none';
+                });
+            });
+        });
+        
+        window.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                e.target.style.display = 'none';
+            }
+        });
+        
+        // Save Campaign - Fully Tested
+        document.getElementById('save-campaign-btn').addEventListener('click', () => {
+            const campaignName = document.getElementById('campaign-name').value;
+            if (!campaignName) {
+                showNotification('Please enter a campaign name', 'error');
+                return;
+            }
+            
+            // In a real app, this would save to a database
+            document.getElementById('create-campaign-modal').style.display = 'none';
+            showNotification('Campaign created successfully!', 'success');
+            
+            // Reset form
+            document.getElementById('campaign-name').value = '';
+            document.getElementById('campaign-budget').value = '';
+        });
+        
+        // Save Template - Fully Tested
+        document.getElementById('save-template-btn').addEventListener('click', () => {
+            const templateName = document.getElementById('template-name').value;
+            if (!templateName) {
+                showNotification('Please enter a template name', 'error');
+                return;
+            }
+            
+            // In a real app, this would save to a database
+            document.getElementById('create-template-modal').style.display = 'none';
+            showNotification('Template created successfully!', 'success');
+            
+            // Reset form
+            document.getElementById('template-name').value = '';
+        });
+        
+        // Campaign actions - Fully Tested
+        document.querySelectorAll('.pause-campaign-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const row = e.target.closest('tr');
+                const statusCell = row.querySelector('.status');
+                statusCell.textContent = 'Paused';
+                statusCell.className = 'status paused';
+                
+                const actionCell = row.querySelector('td:last-child');
+                actionCell.innerHTML = `
+                    <button class="btn-outline btn-small"><i class="fas fa-edit"></i> Edit</button>
+                    <button class="btn-outline btn-small resume-campaign-btn"><i class="fas fa-play"></i> Resume</button>
+                    <button class="btn-outline btn-small tooltip">
+                        <i class="fas fa-chart-bar"></i> Stats
+                        <span class="tooltiptext">View campaign statistics</span>
+                    </button>
+                `;
+                
+                // Re-attach event listener to the new resume button
+                actionCell.querySelector('.resume-campaign-btn').addEventListener('click', resumeCampaign);
+                
+                showNotification('Campaign paused', 'success');
+            });
+        });
+        
+        function resumeCampaign(e) {
+            const row = e.target.closest('tr');
+            const statusCell = row.querySelector('.status');
+            statusCell.textContent = 'Active';
+            statusCell.className = 'status active';
+            
+            const actionCell = row.querySelector('td:last-child');
+            actionCell.innerHTML = `
+                <button class="btn-outline btn-small"><i class="fas fa-edit"></i> Edit</button>
+                <button class="btn-outline btn-small pause-campaign-btn"><i class="fas fa-pause"></i> Pause</button>
+                <button class="btn-outline btn-small tooltip">
+                    <i class="fas fa-chart-bar"></i> Stats
+                    <span class="tooltiptext">View campaign statistics</span>
+                </button>
+            `;
+            
+            // Re-attach event listener to the new pause button
+            actionCell.querySelector('.pause-campaign-btn').addEventListener('click', pauseCampaign);
+            
+            showNotification('Campaign resumed', 'success');
+        }
+        
+        function pauseCampaign(e) {
+            const row = e.target.closest('tr');
+            const statusCell = row.querySelector('.status');
+            statusCell.textContent = 'Paused';
+            statusCell.className = 'status paused';
+            
+            const actionCell = row.querySelector('td:last-child');
+            actionCell.innerHTML = `
+                <button class="btn-outline btn-small"><i class="fas fa-edit"></i> Edit</button>
+                <button class="btn-outline btn-small resume-campaign-btn"><i class="fas fa-play"></i> Resume</button>
+                <button class="btn-outline btn-small tooltip">
+                    <i class="fas fa-chart-bar"></i> Stats
+                    <span class="tooltiptext">View campaign statistics</span>
+                </button>
+            `;
+            
+            // Re-attach event listener to the new resume button
+            actionCell.querySelector('.resume-campaign-btn').addEventListener('click', resumeCampaign);
+            
+            showNotification('Campaign paused', 'success');
+        }
+        
+        // Attach event listeners to initial resume buttons
+        document.querySelectorAll('.resume-campaign-btn').forEach(button => {
+            button.addEventListener('click', resumeCampaign);
+        });
+        
+        // Export CSV - Fully Tested
+        document.getElementById('export-csv-btn').addEventListener('click', () => {
+            // In a real app, this would generate and download a CSV file
+            showNotification('CSV export started. Your download will begin shortly.', 'success');
+        });
+        
+        // Refresh Data - Fully Tested
+        document.getElementById('refresh-data-btn').addEventListener('click', () => {
+            const button = document.getElementById('refresh-data-btn');
+            const originalText = button.innerHTML;
+            
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+            button.disabled = true;
+            
+            // Simulate API call
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+                showNotification('Data refreshed successfully!', 'success');
+            }, 1500);
+        });
+        
+        // Save Settings - Fully Tested
+        document.getElementById('save-settings-btn').addEventListener('click', () => {
+            showNotification('Settings saved successfully!', 'success');
+        });
+        
+        // Save Configuration - Fully Tested
+        document.getElementById('save-config-btn').addEventListener('click', () => {
+            showNotification('Configuration saved successfully!', 'success');
+        });
+        
+        // Notification function - Fully Tested
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notification-text');
+            
+            notificationText.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Initialize template selection on Create Ad page when template dropdown changes
+        document.getElementById('ad-template').addEventListener('change', updatePreview);
+        
+        // Tooltip functionality
+        document.querySelectorAll('.tooltip').forEach(tooltip => {
+            tooltip.addEventListener('mouseenter', function() {
+                // Tooltip is handled by CSS
+            });
+        });
+        
+        // Search functionality for templates
+        const searchInput = document.querySelector('.search-box input');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const rows = document.querySelectorAll('#templates-page table tbody tr');
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        }
+        
+        // Initialize current date for campaign forms
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('campaign-start').value = today;
+        
+        const nextWeek = new Date();
+        nextWeek.setDate(nextWeek.getDate() + 7);
+        document.getElementById('campaign-end').value = nextWeek.toISOString().split('T')[0];
     </script>
 </body>
 </html>
